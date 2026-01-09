@@ -1,7 +1,12 @@
-# lucent-launcher
+# Lucent Launcher
 A customisable, fast and modern Android launcher that respects your privacy.
 
-# Sneak Peek
+## Current Version: a0.1
+Upcoming Releases
+- a0.2 (January 10)
+- a0.3 (January 12)
+
+# Screenshots (a0.1)
 ![Screenshot_2026-01-09-14-39-45-13_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/4e992691-51bd-47ec-bdba-00523f4cee04)
 ![Screenshot_2026-01-09-14-39-55-06_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/0a0881ea-b56a-41b5-ad3c-4ca4b3a5d526)
 ![Screenshot_2026-01-09-14-40-18-36_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/3c68f09a-fe57-433e-b7f5-fe88a18d88bb)
