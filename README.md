@@ -5,8 +5,7 @@ A customisable, fast and modern Android launcher that respects your privacy.
 Upcoming Releases
 - a0.3 (January 12)
 
-# Screenshots (a0.1)
-![Screenshot_2026-01-09-14-39-45-13_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/4e992691-51bd-47ec-bdba-00523f4cee04)
-![Screenshot_2026-01-09-14-39-55-06_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/0a0881ea-b56a-41b5-ad3c-4ca4b3a5d526)
-![Screenshot_2026-01-09-14-40-18-36_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/3c68f09a-fe57-433e-b7f5-fe88a18d88bb)
-![Screenshot_2026-01-09-14-40-12-71_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/dae0a647-b06e-4d89-896a-efb2f7cf98ac)
+# a0.3 Preview
+![Screenshot_2026-01-10-15-17-55-19_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/29b654aa-f1a5-432c-9bc6-bffed3d00e5a)
+![Screenshot_2026-01-10-15-18-03-31_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/958171cf-91c0-48ef-8356-cecc1e9e0624)
+![Screenshot_2026-01-10-15-18-06-71_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/b1514d7d-9e39-4b9d-abc4-4c2b56265686)
