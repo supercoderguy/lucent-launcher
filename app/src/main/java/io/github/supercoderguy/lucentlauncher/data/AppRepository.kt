@@ -1,7 +1,7 @@
 package io.github.supercoderguy.lucentlauncher.data
 
+import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.content.pm.LauncherApps
 import android.os.Process
 import io.github.supercoderguy.lucentlauncher.model.DockItem
@@ -17,16 +17,14 @@ class AppRepository(private val context: Context) {
             DockItem.App(
                 label = it.label.toString(),
                 packageName = it.applicationInfo.packageName,
-                componentName = it.name
+                componentName = it.componentName.className
             )
         }.sortedBy { it.label.lowercase() }
         emit(apps)
     }
 
     fun launchApp(app: DockItem.App) {
-        val intent = context.packageManager.getLaunchIntentForPackage(app.packageName)
-        if (intent != null) {
-            context.startActivity(intent)
-        }
+        val componentName = ComponentName(app.packageName, app.componentName)
+        launcherApps.startMainActivity(componentName, Process.myUserHandle(), null, null)
     }
 }

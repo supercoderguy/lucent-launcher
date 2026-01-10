@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.supercoderguy.lucentlauncher.data.AppRepository
+import io.github.supercoderguy.lucentlauncher.data.PersistenceRepository
 import io.github.supercoderguy.lucentlauncher.model.DockConfig
 import io.github.supercoderguy.lucentlauncher.model.DockEdge
 import io.github.supercoderguy.lucentlauncher.model.DockItem
@@ -14,39 +15,55 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class LauncherViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = AppRepository(application)
+    private val appRepository = AppRepository(application)
+    private val persistenceRepository = PersistenceRepository(application)
+    
     private val _uiState = MutableStateFlow(LauncherState())
     val uiState: StateFlow<LauncherState> = _uiState.asStateFlow()
 
     init {
         loadApps()
-        // Initial setup: Add a default bottom dock and a floating dock (home screen apps)
-        _uiState.update { state ->
-            state.copy(
-                docks = listOf(
-                    DockConfig(
-                        id = "dock_bottom",
-                        edge = DockEdge.BOTTOM,
-                        items = emptyList()
-                    ),
-                    DockConfig(
-                        id = "home_screen",
-                        edge = DockEdge.FLOATING,
-                        items = emptyList()
-                    )
-                )
-            )
-        }
+        loadPersistentState()
     }
 
     private fun loadApps() {
         viewModelScope.launch {
-            repository.getInstalledApps().collect { apps ->
+            appRepository.getInstalledApps().collect { apps ->
                 _uiState.update { it.copy(installedApps = apps) }
             }
+        }
+    }
+
+    private fun loadPersistentState() {
+        viewModelScope.launch {
+            val savedState = persistenceRepository.loadState()
+            if (savedState != null) {
+                _uiState.update { state ->
+                    state.copy(
+                        docks = savedState.docks,
+                        themeMode = savedState.themeMode,
+                        useDynamicColor = savedState.useDynamicColor
+                    )
+                }
+            } else {
+                // Initial setup if no saved state exists
+                _uiState.update { state ->
+                    state.copy(
+                        docks = listOf(
+                            DockConfig(id = "dock_bottom", edge = DockEdge.BOTTOM),
+                            DockConfig(id = "home_screen", edge = DockEdge.FLOATING)
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private fun saveState() {
+        viewModelScope.launch {
+            persistenceRepository.saveState(_uiState.value)
         }
     }
 
@@ -56,6 +73,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     fun setThemeMode(mode: ThemeMode) {
         _uiState.update { it.copy(themeMode = mode) }
+        saveState()
     }
 
     fun toggleAppDrawer() {
@@ -72,7 +90,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     fun launchApp(app: DockItem.App) {
         _uiState.update { it.copy(isAppDrawerVisible = false) }
-        repository.launchApp(app)
+        appRepository.launchApp(app)
     }
 
     fun addAppToDock(app: DockItem.App) {
@@ -87,6 +105,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
             }
             state.copy(docks = updatedDocks, isAppPickerVisible = false, targetDockId = null)
         }
+        saveState()
     }
 
     fun removeAppFromDock(dockId: String, app: DockItem.App) {
@@ -100,5 +119,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
             }
             state.copy(docks = updatedDocks)
         }
+        saveState()
     }
 }

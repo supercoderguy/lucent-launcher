@@ -1,6 +1,10 @@
 package io.github.supercoderguy.lucentlauncher
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.pm.LauncherApps
 import android.os.Bundle
+import android.os.Process
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,6 +14,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -35,9 +40,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.supercoderguy.lucentlauncher.model.DockConfig
 import io.github.supercoderguy.lucentlauncher.model.DockEdge
@@ -237,8 +246,8 @@ fun AppDrawer(
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(4),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
                 items(filteredApps) { app ->
@@ -249,24 +258,17 @@ fun AppDrawer(
                             .clickable { onAppClick(app) }
                             .padding(4.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = app.label.take(1),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        AppIconImage(
+                            app = app,
+                            size = 56.dp
+                        )
                         Text(
                             text = app.label,
                             style = MaterialTheme.typography.labelSmall,
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 8.dp),
+                            modifier = Modifier.padding(top = 4.dp),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -329,28 +331,26 @@ fun DockView(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(if (config.edge == DockEdge.BOTTOM) 16.dp else 24.dp),
         contentAlignment = alignment
     ) {
         Surface(
-            shape = RoundedCornerShape(32.dp),
+            shape = RoundedCornerShape(28.dp),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
             tonalElevation = 6.dp,
             modifier = Modifier.wrapContentSize()
         ) {
             if (isHorizontal) {
-                // If floating (Home Screen), we use a flow-like arrangement for multiple apps
                 if (config.edge == DockEdge.FLOATING) {
                     Column(
-                        modifier = Modifier.padding(16.dp).widthIn(max = 300.dp),
+                        modifier = Modifier.padding(8.dp).widthIn(max = 320.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Using a simple wrapped row logic
                         val chunkedItems = config.items.chunked(4)
                         chunkedItems.forEach { rowItems ->
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.padding(vertical = 8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.padding(vertical = 2.dp)
                             ) {
                                 rowItems.forEach { item ->
                                     DockItemRenderer(item, isEditMode, onAppClick, onRemoveApp)
@@ -358,15 +358,14 @@ fun DockView(
                             }
                         }
                         if (isEditMode) {
+                            Spacer(Modifier.height(8.dp))
                             AddButton(onAddClick)
-                        } else if (config.items.isEmpty()) {
-                            Text("Long-press to edit", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 } else {
                     Row(
-                        modifier = Modifier.padding(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         config.items.forEach { item ->
@@ -377,8 +376,8 @@ fun DockView(
                 }
             } else {
                 Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     config.items.forEach { item ->
@@ -416,10 +415,56 @@ fun AddButton(onClick: () -> Unit) {
     IconButton(
         onClick = onClick,
         modifier = Modifier
-            .size(56.dp)
+            .size(50.dp)
             .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
     ) {
         Icon(Icons.Default.Add, contentDescription = "Add Item")
+    }
+}
+
+@Composable
+fun AppIconImage(app: DockItem.App, size: androidx.compose.ui.unit.Dp) {
+    val context = LocalContext.current
+    val pm = context.packageManager
+    val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+    
+    val icon = remember(app.packageName, app.componentName) {
+        try {
+            val component = ComponentName(app.packageName, app.componentName)
+            val activityInfo = launcherApps.getActivityList(app.packageName, Process.myUserHandle())
+                .find { it.componentName == component }
+            
+            if (activityInfo != null) {
+                activityInfo.getIcon(0).toBitmap().asImageBitmap()
+            } else {
+                pm.getApplicationIcon(app.packageName).toBitmap().asImageBitmap()
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    if (icon != null) {
+        Image(
+            bitmap = icon,
+            contentDescription = app.label,
+            modifier = Modifier
+                .size(size)
+                .clip(RoundedCornerShape(12.dp))
+        )
+    } else {
+        Box(
+            modifier = Modifier
+                .size(size)
+                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = app.label.take(1),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
     }
 }
 
@@ -434,29 +479,19 @@ fun AppIcon(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .width(64.dp)
+                .width(68.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .clickable { onClick() }
-                .padding(4.dp)
+                .padding(vertical = 4.dp, horizontal = 2.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(14.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = app.label.take(1),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
+            AppIconImage(app = app, size = 52.dp)
             Text(
                 text = app.label,
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 2.dp).fillMaxWidth(),
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
@@ -465,8 +500,8 @@ fun AppIcon(
             Surface(
                 onClick = onRemove,
                 modifier = Modifier
-                    .offset(x = 6.dp, y = (-6).dp)
-                    .size(22.dp),
+                    .offset(x = 4.dp, y = (-4).dp)
+                    .size(20.dp),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.error,
                 tonalElevation = 4.dp
@@ -475,7 +510,7 @@ fun AppIcon(
                     Icons.Default.Close,
                     contentDescription = "Remove",
                     tint = MaterialTheme.colorScheme.onError,
-                    modifier = Modifier.padding(4.dp)
+                    modifier = Modifier.padding(2.dp)
                 )
             }
         }
@@ -543,14 +578,7 @@ fun AppPicker(
                             headlineContent = { Text(app.label) },
                             supportingContent = { Text(app.packageName, style = MaterialTheme.typography.bodySmall) },
                             leadingContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(app.label.take(1))
-                                }
+                                AppIconImage(app = app, size = 40.dp)
                             },
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))

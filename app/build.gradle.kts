@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -50,6 +51,22 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
+    
+    // Icon Loading
+    implementation(libs.coil.compose)
+
+    // Persistence
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    // annotationProcessor(libs.androidx.room.compiler) // For Java
+    // kapt(libs.androidx.room.compiler) // For Kotlin (Old)
+    // ksp(libs.androidx.room.compiler) // For Kotlin (New - Recommended)
+    // For simplicity in this script, we'll use a basic DataStore-like approach or manual Room if needed.
+    // However, since I can't easily add KSP/Kapt plugins without potentially breaking the sync, 
+    // I will use a simple JSON file persistence in the Repository for Alpha 0.2.
+    
+    implementation(libs.kotlinx.serialization.json)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
