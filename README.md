@@ -1,6 +1,10 @@
 # Lucent Launcher
 A customisable, fast and modern Android launcher that respects your privacy.
 
+Get on Appteka:
+Lucent Launcher (7.2 MB)
+https://appteka.store/app/256r262428
+
 ## Current Version: a0.2
 Upcoming Releases
 - a0.3 (January 12)
