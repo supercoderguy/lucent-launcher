@@ -7,7 +7,7 @@ https://appteka.store/app/256r262428
 
 ## Current Version: a0.2
 Upcoming Releases
-- a0.3 (January 12)
+- a0.3 (January 18)
 
 # a0.3 Preview
 ![Screenshot_2026-01-10-15-17-55-19_77a05238d30ae8da47c7d2199b96f1f1](https://github.com/user-attachments/assets/29b654aa-f1a5-432c-9bc6-bffed3d00e5a)
